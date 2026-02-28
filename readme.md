@@ -1,66 +1,46 @@
-# API REST – Project Manager (Examen Django & DRF)
+# Project Manager API – Backend Django REST
 
-## Présentation du projet
+## Présentation
 
-Dans le cadre de l’examen Django/DRF, j’ai développé une API REST permettant de gérer des utilisateurs et des projets.  
-L’objectif était de construire une API propre, sécurisée et cohérente, en respectant les bonnes pratiques du framework et en testant chaque fonctionnalité au fur et à mesure.
+Cette API REST fournit un système complet de gestion d’utilisateurs et de projets. Elle s’appuie sur Django et Django REST Framework pour offrir une architecture fiable, sécurisée et extensible. L’ensemble des endpoints a été testé via Postman (Basic Auth) et via l’interface DRF (sessionid).
 
-J’ai testé l’ensemble des endpoints :
-
-- via **Postman** (Basic Auth)
-- via **l’interface DRF**, qui utilise automatiquement un cookie `sessionid` pour authentifier l’utilisateur connecté
-
-Ce document présente clairement les modèles, les endpoints, les permissions et le comportement attendu de l’API.
-
----
-
-# Modèles
-## Modèle Utilisateur (User)
-
-- `username` : unique, max 150 caractères  
-- `email` : unique et obligatoire  
-- `password` : minimum 8 caractères, stocké de manière **hachée** (mécanisme Django)
-
-## Modèle Projet (Project)
-
-- `title` : unique, max 100 caractères  
-- `description` : facultatif  
-- `created_at` : généré automatiquement  
-- `owner` : utilisateur propriétaire du projet  
+L’objectif du backend est de proposer :
+- une authentification robuste,
+- une gestion propre des utilisateurs,
+- un CRUD complet sur les projets,
+- des permissions strictes basées sur le propriétaire,
+- une documentation claire et un code commenté pour faciliter la maintenance.
 
 ---
 
-# Commentaires dans le code
+## Modèles
 
-Pour faciliter la compréhension du projet, j’ai ajouté des commentaires dans les fichiers importants :
+### Utilisateur (User)
+- `username` — unique, max 150 caractères  
+- `email` — unique et obligatoire  
+- `password` — stocké de manière sécurisée (hash Django)
 
-- explication du rôle de chaque vue  
-- rappel des permissions appliquées  
-- commentaires dans les serializers pour clarifier la logique  
-- commentaires dans les modèles pour préciser les contraintes  
-- explication du comportement des endpoints sensibles (PUT/DELETE protégés)
-
-L’objectif était de rendre le code lisible et simple à maintenir.
-
----
-
-# Documentation des API
-
-## Utilisateurs
+### Projet (Project)
+- `title` — unique, max 100 caractères  
+- `description` — optionnelle  
+- `created_at` — généré automatiquement  
+- `owner` — utilisateur propriétaire du projet  
 
 ---
 
-## 1 POST `/api/users/register/`
+## Documentation des API
+
+# Utilisateurs
+
+### 1. POST `/api/users/register/`
 Créer un compte utilisateur.  
-**Public — aucune authentification requise**
+**Public**
 
 **Body :**
 ```json
 {
   "username": "john",
   "email": "john@test.com",
-  "password": "test12345"
-}
 
 Réponses :
 
@@ -68,8 +48,7 @@ Réponses :
 400 : username ou email déjà utilisé
 
 2. GET /api/users/<username>/
-
-Afficher les informations de l’utilisateur connecté.
+Afficher les informations du compte connecté.
 Basic Auth obligatoire
 
 Réponse :
@@ -90,7 +69,6 @@ Body :
 }
 
 4. DELETE /api/users/<username>/
-
 Supprimer le compte connecté.
 Basic Auth obligatoire
 
@@ -98,12 +76,12 @@ Réponse :
 
 204 No Content
 
-
 Projets
 
 1. GET /api/projects/
 Retourne une liste paginée de tous les projets.
-Accessible à tout le monde
+
+Public
 
 Options :
 
@@ -117,7 +95,6 @@ Exemple :
 /api/projects/?ordering=-created_at&page=2
 
 2. POST /api/projects/
-
 Créer un nouveau projet.
 Basic Auth obligatoire
 
@@ -128,16 +105,15 @@ Body :
   "description": "Texte facultatif"
 }
 
-L’API attribue automatiquement owner = utilisateur connecté.
+L’API attribue automatiquement :
+owner = utilisateur connecté
 
 3. GET /api/projects/<id_project>/<username>/
 Récupérer un projet spécifique.
 
 Public
-
 Réponse :
 
-json
 {
   "id": 1,
   "title": "Projet X",
@@ -146,9 +122,7 @@ json
   "owner": "melodie"
 }
 
-
 4. PUT /api/projects/<id_project>/<username>/
-
 Modifier un projet.
 Réservé au propriétaire
 
@@ -159,60 +133,60 @@ Si non propriétaire :
 }
 
 5. DELETE /api/projects/<id_project>/<username>/
-
 Supprimer un projet.
 Réservé au propriétaire
 
-Réponses possibles :
+Réponses :
 
 204 : projet supprimé
 403 : utilisateur non propriétaire
 
 Permissions & sécurité
+
 Un utilisateur peut modifier ou supprimer uniquement ses propres projets.
+Toute tentative non autorisée renvoie un 403 Forbidden.
 
-Toute tentative d’accès non autorisé renvoie un 403 Forbidden.
+Authentification :
 
-L’interface DRF utilise un cookie sessionid pour authentifier automatiquement l’utilisateur connecté.
-
-Postman utilise Basic Auth pour tester les endpoints protégés.
+Basic Auth (Postman)
+sessionid (interface DRF)
 
 Tests réalisés
 
-Tests Postman
+Postman
 
 Création d’utilisateurs
-Authentification Basic Auth
+Authentification
 CRUD complet sur les projets
 Tests d’erreurs (400, 403, 404)
 Vérification des permissions
 Suppression (204 No Content)
 
-Tests via l’interface DRF
+Interface DRF
 
 Tests GET/POST/PUT/DELETE
-Authentification via cookie sessionid
-Vérification des permissions côté serveur
+Authentification via cookie
+Vérification des règles de permissions
 
-Installation & lancement
+Installation
 
-git clone <repo>
-cd ExamenDjango
+git clone https://github.com/simohamedmnari/project-manager-backend
+cd project-manager-backend
 python -m venv env
-source env/bin/activate  # ou env\Scripts\activate sous Windows
+env\Scripts\activate  # Windows
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 
 Conclusion
 
-L’API respecte l’ensemble des exigences du sujet :
+Ce backend fournit une base solide pour une application de gestion de projets. Il est conçu pour être :
 
-Modèles conformes
-Endpoints complets
-Permissions fonctionnelles
-Tests Postman + DRF
-Gestion des erreurs
-Documentation claire et précise
-Code commenté pour faciliter la compréhension
-Le projet est finalisé et prêt à être évalué.
+extensible,
+sécurisé,
+facile à maintenir,
+conforme aux bonnes pratiques Django/DRF.
+
+
+
+
